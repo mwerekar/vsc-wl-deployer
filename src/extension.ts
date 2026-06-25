@@ -8,7 +8,7 @@ import { XMLParser } from 'fast-xml-parser';
 const outputChannel = vscode.window.createOutputChannel("WebLogic Deployer");
 
 export function activate(context: vscode.ExtensionContext) {
-    
+
     // 1. Comando: Configurar Servidores
     let configCmd = vscode.commands.registerCommand('weblogic.config', () => {
         // Abre la configuración global de VS Code filtrando por la extensión
@@ -18,17 +18,22 @@ export function activate(context: vscode.ExtensionContext) {
     // 2. Comando: Build & Deploy
     let buildDeployCmd = vscode.commands.registerCommand('weblogic.buildAndDeploy', async () => {
         const projectInfo = await getProjectInfo();
-        if (!projectInfo) {return;}
+        const mvnOpts = await getMavenOptions();
+        if (!projectInfo) { return; }
 
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Ejecutando Maven Build...",
+            title: "Ejecutando Maven Build.. ",
             cancellable: false
         }, async (progress) => {
             try {
-                await executeCommand('mvn clean package -Penv-jdk21', projectInfo.workspaceRoot);
+                let command = 'mvn clean package';
+                if (mvnOpts) {
+                    command += ` ${mvnOpts}`;
+                }
+                await executeCommand(command, projectInfo.workspaceRoot);
                 vscode.window.showInformationMessage('Build exitoso. Iniciando despliegue...');
-                await performDeploy(projectInfo, true);
+                await performDeploy(projectInfo);
             } catch (err) {
                 vscode.window.showErrorMessage(`Error en Build: ${err}`);
             }
@@ -38,14 +43,14 @@ export function activate(context: vscode.ExtensionContext) {
     // 3. Comando: Deploy
     let deployCmd = vscode.commands.registerCommand('weblogic.deploy', async () => {
         const projectInfo = await getProjectInfo();
-        if (!projectInfo) {return;}
-        await performDeploy(projectInfo, false);
+        if (!projectInfo) { return; }
+        await performDeploy(projectInfo);
     });
 
     // 4. Comando: UnDeploy
     let undeployCmd = vscode.commands.registerCommand('weblogic.undeploy', async () => {
         const projectInfo = await getProjectInfo();
-        if (!projectInfo) {return;}
+        if (!projectInfo) { return; }
         await performUnDeploy(projectInfo);
     });
 
@@ -53,6 +58,18 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // --- FUNCIONES AUXILIARES ---
+
+async function getMavenOptions() {
+    // 1. Obtener la configuración del espacio de trabajo para el prefijo 'maven'
+    const configuration = vscode.workspace.getConfiguration('maven');
+
+    // 2. Obtener el valor específico de 'executable.options'
+    // El segundo parámetro (null) indica que queremos el valor global o de workspace, 
+    // no necesariamente atado a un recurso específico (como un archivo abierto).
+    const mavenOptions = configuration.get<string>('executable.options');
+
+    return mavenOptions;
+}
 
 async function getProjectInfo() {
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -71,7 +88,7 @@ async function getProjectInfo() {
     const xmlData = fs.readFileSync(pomPath, 'utf8');
     const parser = new XMLParser();
     const result = parser.parse(xmlData);
-    
+
     const artifactId = result.project.artifactId;
     const packaging = result.project.packaging || 'jar';
     const version = result.project.version;
@@ -88,6 +105,7 @@ async function getProjectInfo() {
     return { workspaceRoot, artifactId, targetPath, packaging };
 }
 
+
 async function getServer() {
     const config = vscode.workspace.getConfiguration('weblogic');
     const servers: any[] = config.get('servers') || [];
@@ -103,7 +121,7 @@ async function getServer() {
         // Si no hay default, mostrar UI para elegir
         const items = servers.map(s => ({ label: s.name, description: `${s.host}:${s.port}`, server: s }));
         const selected = await vscode.window.showQuickPick(items, { placeHolder: 'Selecciona un servidor WebLogic' });
-        if (!selected) {return null;}
+        if (!selected) { return null; }
         targetServer = selected.server;
     }
 
@@ -113,7 +131,7 @@ async function getServer() {
 function executeCommand(command: string, cwd: string): Promise<string> {
     outputChannel.appendLine(`\n--- EJECUTANDO COMANDO ---`);
     outputChannel.appendLine(`[Directorio]: ${cwd}`);
-    
+
     // Ocultar la contraseña en el log para seguridad
     const safeCommand = command.replace(/--user [^ ]+/, '--user ***:***');
     outputChannel.appendLine(`[Comando]: ${safeCommand}`);
@@ -137,10 +155,10 @@ function executeCommand(command: string, cwd: string): Promise<string> {
     });
 }
 
- async function performDeploy(projectInfo: any, launchBrowser: boolean) {
+async function performDeploy(projectInfo: any) {
     outputChannel.appendLine('\n========================================');
     outputChannel.appendLine(`[DEBUG] Iniciando proceso de DEPLOY para: ${projectInfo.artifactId}`);
-    
+
     // 1. Validar Servidor
     const server = await getServer();
     if (!server) {
@@ -149,7 +167,7 @@ function executeCommand(command: string, cwd: string): Promise<string> {
     }
 
     const deployTarget = server.target || 'AdminServer';
-    
+
     // Ruta de la API moderna para WebLogic 12.2.1.4+ / 14c / 15
     const apiPath = server.apiPath || '/management/weblogic/latest/edit/appDeployments';
     const url = `http://${server.host}:${server.port}${apiPath}`;
@@ -178,7 +196,7 @@ function executeCommand(command: string, cwd: string): Promise<string> {
             // =========================================================
             outputChannel.appendLine(`\n[DEBUG] --- FASE 1: Intentando Undeploy previo ---`);
             const undeployUrl = `${url}/${projectInfo.artifactId}`;
-            
+
             const undeployCmd = `curl -v \
                 --user ${server.username}:${server.password} \
                 -H "X-Requested-By: VSCode-Deployer" \
@@ -198,7 +216,7 @@ function executeCommand(command: string, cwd: string): Promise<string> {
             // FASE 2: DEPLOY DE LA NUEVA VERSIÓN
             // =========================================================
             outputChannel.appendLine(`\n[DEBUG] --- FASE 2: Despliegue (Deploy) ---`);
-            
+
             // Validar si el target es un clúster o un servidor individual para la identidad de WebLogic
             const targetType = deployTarget.toLowerCase().includes('cluster') ? 'clusters' : 'servers';
 
@@ -218,23 +236,23 @@ function executeCommand(command: string, cwd: string): Promise<string> {
 
             // Ejecución
             const result = await executeCommand(curlCmd, projectInfo.workspaceRoot);
-            
+
             // --> CAMBIO PRINCIPAL: Mostrar en el Output Channel la respuesta JSON íntegra devuelta por WebLogic
             outputChannel.appendLine(`\n[DEBUG] Respuesta del servidor WebLogic al Deploy (JSON):\n${result}`);
 
             // Evaluar si la respuesta contiene errores internos devueltos por la API moderna
             if (result && (result.includes('404 Not Found') || result.includes('"status": 500') || result.includes('"status": 400') || result.includes('FAILURE'))) {
-                 outputChannel.appendLine(`[DEBUG] ADVERTENCIA: La respuesta de WebLogic contiene un error en el payload.`);
-                 throw new Error("El servidor WebLogic rechazó la solicitud. Revisa el log detallado.");
+                outputChannel.appendLine(`[DEBUG] ADVERTENCIA: La respuesta de WebLogic contiene un error en el payload.`);
+                throw new Error("El servidor WebLogic rechazó la solicitud. Revisa el log detallado.");
             }
 
-            
+
 
             // Éxito
             vscode.window.showInformationMessage(`¡Despliegue exitoso de ${projectInfo.artifactId} en ${deployTarget}!`);
 
             // Abrir navegador si aplica
-            if (launchBrowser) {
+            if (server.openBrowser) {
                 const appUrl = `http://${server.host}:${server.port}/${projectInfo.artifactId}`;
                 outputChannel.appendLine(`[DEBUG] Abriendo navegador en la ruta: ${appUrl}`);
                 vscode.env.openExternal(vscode.Uri.parse(appUrl));
@@ -283,13 +301,13 @@ async function performUnDeploy(projectInfo: any) {
 
             // Ejecución
             const result = await executeCommand(curlCmd, projectInfo.workspaceRoot);
-            
+
             outputChannel.appendLine(`\n[DEBUG] Respuesta del servidor WebLogic al UnDeploy (JSON):\n${result}`);
 
             // Evaluar la respuesta del servidor
             if (result && (result.includes('"status": 500') || result.includes('"status": 400') || result.includes('FAILURE'))) {
-                 outputChannel.appendLine(`[DEBUG] ADVERTENCIA: La respuesta de WebLogic contiene un error en el payload.`);
-                 throw new Error("El servidor WebLogic rechazó la solicitud. Revisa el log detallado.");
+                outputChannel.appendLine(`[DEBUG] ADVERTENCIA: La respuesta de WebLogic contiene un error en el payload.`);
+                throw new Error("El servidor WebLogic rechazó la solicitud. Revisa el log detallado.");
             }
 
             // Si devuelve 404 es porque la aplicación ya no estaba desplegada
