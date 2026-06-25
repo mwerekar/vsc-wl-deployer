@@ -1,0 +1,141 @@
+{
+  "name": "weblogic-deployer",
+  "displayName": "weblogic-deployer",
+  "description": "Herramienta de despligue para weblogic 1x",
+  "version": "0.0.2",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "weblogic.buildAndDeploy",
+        "title": "WebLogic: Build & Deploy"
+      },
+      {
+        "command": "weblogic.deploy",
+        "title": "WebLogic: Deploy"
+      },
+      {
+        "command": "weblogic.undeploy",
+        "title": "WebLogic: UnDeploy"
+      },
+      {
+        "command": "weblogic.config",
+        "title": "WebLogic: Configurar Servidores"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "weblogic.buildAndDeploy",
+        "key": "alt+w b",
+        "mac": "cmd+alt+w b",
+        "when": "workspaceFolderCount > 0"
+      },
+      {
+        "command": "weblogic.deploy",
+        "key": "alt+w d",
+        "mac": "cmd+alt+w d",
+        "when": "workspaceFolderCount > 0"
+      },
+      {
+        "command": "weblogic.undeploy",
+        "key": "alt+w u",
+        "mac": "cmd+alt+w u",
+        "when": "workspaceFolderCount > 0"
+      },
+      {
+        "command": "weblogic.config",
+        "key": "alt+w c",
+        "mac": "cmd+alt+w c"
+      }
+    ],
+    "configuration": {
+      "title": "WebLogic Deployer",
+      "properties": {
+        "weblogic.servers": {
+          "type": "array",
+          "default": [],
+          "description": "Lista de servidores WebLogic configurados globalmente.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Nombre del servidor"
+              },
+              "host": {
+                "type": "string",
+                "description": "Host o IP"
+              },
+              "port": {
+                "type": "number",
+                "description": "Puerto de administración"
+              },
+              "username": {
+                "type": "string",
+                "description": "Usuario"
+              },
+              "password": {
+                "type": "string",
+                "description": "Contraseña"
+              },
+              "target": {
+                "type": "string",
+                "default": "AdminServer",
+                "description": "Target de despliegue (AdminServer, un Managed Server o un Cluster)"
+              },
+              "apiPath": {
+                "type": "string",
+                "default": "/management/weblogic/latest/edit/appDeployments",
+                "description": "Ruta de la API REST para despliegue en WebLogic"
+              },
+              "isDefault": {
+                "type": "boolean",
+                "description": "Servidor por defecto"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.5.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.9.3"
+  }
+}
