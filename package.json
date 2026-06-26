@@ -1,9 +1,9 @@
 {
   "name": "weblogic-deployer",
   "displayName": "weblogic-deployer",
-  "description": "Herramienta de despligue para weblogic 1x",
+  "description": "Toolbox de despligue para weblogic 14+",
   "version": "0.0.6",
-  "publisher": "ISC-Mario-Huereca-Rdz",
+  "publisher": "MWEREKAR",
   "icon": "images/main_icon.png",
   "engines": {
     "vscode": "^1.125.0"
