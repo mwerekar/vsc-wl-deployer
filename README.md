@@ -44,7 +44,7 @@ Ejemplo de configuración en tu `settings.json`:
 "weblogic.servers": [
     {
         "name": "Servidor Desarrollo",
-        "host": "192.168.1.100",
+        "host": "localhost",
         "port": 7001,
         "username": "weblogic",
         "password": "password123",
