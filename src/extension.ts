@@ -56,8 +56,61 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
 
+    // 5: Comando para Ver Log en Vivo ---
+    let showLogCmd = vscode.commands.registerCommand('weblogic.showLog', async () => {
 
-// Botón Build & Deploy
+
+        // Buscar el servidor marcado por defecto (o el primero si no hay default)
+        const defaultServer = await getServer();
+        let tailLines = 100;
+
+        if (!defaultServer) {
+            vscode.window.showErrorMessage('No hay servidores WebLogic configurados. Ve a los ajustes.');
+            return;
+        }
+
+        if (!defaultServer.logPath) {
+            vscode.window.showErrorMessage(`El servidor "${defaultServer.name}" no tiene configurada la ruta del log (logPath).`);
+            return;
+        }
+
+        if (!defaultServer.logPath) {
+            vscode.window.showErrorMessage(`El servidor "${defaultServer.name}" no tiene configurada la ruta del log (logPath).`);
+            return;
+        }
+        if (defaultServer.tailLines) {
+            tailLines = defaultServer.tailLines;
+        }
+
+
+
+        // Crear una terminal dedicada para el log o reutilizarla si ya existe
+        const terminalName = `WebLogic Log: ${defaultServer.name}`;
+        let terminal = vscode.window.terminals.find(t => t.name === terminalName);
+
+        if (!terminal) {
+            terminal = vscode.window.createTerminal(terminalName);
+        }
+
+        terminal.show(); // Abre el panel de la terminal en el IDE
+
+        // Construir el comando dependiendo de si usa Docker o es Local
+        let logCommand = '';
+        if (defaultServer.containerName && defaultServer.containerName.trim() !== '') {
+            // MODO DOCKER: usar docker exec
+            logCommand = `docker exec -it ${defaultServer.containerName} tail -n ${tailLines} -f ${defaultServer.logPath}`;
+        } else {
+            // MODO LOCAL: tail directo (compatible con Linux/Mac/Git Bash en Windows)
+            // Nota: Si usas PowerShell nativo en Windows, se podría cambiar a "Get-Content -Path ... -Wait"
+            logCommand = `tail -n  ${tailLines}  -f ${defaultServer.logPath}`;
+        }
+
+        // Enviar el comando a la terminal simulando que el usuario presiona Enter
+        terminal.sendText(logCommand);
+    });
+
+
+    // Botón Build & Deploy
     const btnBuildDeploy = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     btnBuildDeploy.command = 'weblogic.buildAndDeploy';
     btnBuildDeploy.text = '$(rocket)';
@@ -78,12 +131,18 @@ export function activate(context: vscode.ExtensionContext) {
     btnUndeploy.tooltip = 'Remover de WebLogic';
     btnUndeploy.show();
 
+    const btnShowLog = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 97); // 97 para que aparezca junto a los otros
+    btnShowLog.command = 'weblogic.showLog';
+    btnShowLog.text = '$(output)';
+    btnShowLog.tooltip = 'Ver log del servidor WebLogic en vivo';
+    btnShowLog.show();
+
     // Suscribir los botones al ciclo de vida de la extensión para limpieza automática
-    context.subscriptions.push(btnBuildDeploy, btnDeploy, btnUndeploy);
+    context.subscriptions.push(btnBuildDeploy, btnDeploy, btnUndeploy, btnShowLog);
 
 
 
-    context.subscriptions.push(configCmd, buildDeployCmd, deployCmd, undeployCmd);
+    context.subscriptions.push(configCmd, buildDeployCmd, deployCmd, undeployCmd, showLogCmd);
 }
 
 // --- FUNCIONES AUXILIARES ---
@@ -144,7 +203,7 @@ async function getServer() {
     let targetServer = servers.find(s => s.isDefault);
 
     if (!targetServer) {
-    
+
         const items = servers.map(s => ({ label: s.name, description: `${s.host}:${s.port}`, server: s }));
         const selected = await vscode.window.showQuickPick(items, { placeHolder: 'Selecciona un servidor WebLogic' });
         if (!selected) { return null; }

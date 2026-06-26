@@ -2,7 +2,7 @@
   "name": "weblogic-deployer",
   "displayName": "weblogic-deployer",
   "description": "Herramienta de despligue para weblogic 1x",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "icon": "images/main_icon.png",
   "engines": {
     "vscode": "^1.125.0"
@@ -35,6 +35,10 @@
       {
         "command": "weblogic.config",
         "title": "WebLogic: Configurar Servidores"
+      },{
+        "command": "weblogic.showLog",
+        "title": "WebLogic: Ver Log en Vivo",
+        "icon": "$(output)"
       }
     ],
     "keybindings": [
@@ -101,6 +105,17 @@
                 "type": "string",
                 "default": "/management/weblogic/latest/edit/appDeployments",
                 "description": "Ruta de la API REST para despliegue en WebLogic"
+              },"logPath": {
+                "type": "string",
+                "description": "Ruta absoluta del archivo de log local, o ruta dentro del contenedor Docker (Ej: /u01/oracle/user_projects/domains/mydomain/servers/AdminServer/logs/AdminServer.log)"
+              },
+              "tailLines": {
+                "type": "string",
+                "description": "Numero de lineas que mostrara el tail 100 por defecto "
+              },
+              "containerName": {
+                "type": "string",
+                "description": "Nombre del contenedor Docker (dejar vacío si el servidor está instalado de forma local directamente en el SO)"
               },
               "isDefault": {
                 "type": "boolean",
