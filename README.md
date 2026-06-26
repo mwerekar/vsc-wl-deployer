@@ -47,7 +47,11 @@ Ejemplo de configuración en tu `settings.json`:
         "username": "weblogic",
         "password": "password123",
         "target": "AdminServer",
-        "isDefault": true
+        "isDefault": true,
+        "openBrowser":true,
+        "logPath":"/u01/oracle/user_projects/domains/base_domain/servers/AdminServer/logs/AdminServer.log",
+        "containerName": "wls15generic"
+
     },
     {
         "name": "Cluster Pruebas",
