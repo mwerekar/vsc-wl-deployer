@@ -26,6 +26,7 @@ Para agilizar el flujo de trabajo, se han configurado atajos de teclado utilizan
 | **Build & Deploy** | `Alt + W`, luego `B` | `Cmd + Alt + W`, luego `B` |
 | **Deploy** | `Alt + W`, luego `D` | `Cmd + Alt + W`, luego `D` |
 | **UnDeploy** | `Alt + W`, luego `U` | `Cmd + Alt + W`, luego `U` |
+| **Terminal Log** | `Alt + W`, luego `T` | `Cmd + Alt + W`, luego `T` |
 | **Configurar Servidores** | `Alt + W`, luego `C` | `Cmd + Alt + W`, luego `C` |
 
 *Nota: Los comandos de despliegue solo se activan si tienes un proyecto abierto en el espacio de trabajo.*

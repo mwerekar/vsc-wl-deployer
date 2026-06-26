@@ -2,7 +2,8 @@
   "name": "weblogic-deployer",
   "displayName": "weblogic-deployer",
   "description": "Herramienta de despligue para weblogic 1x",
-  "version": "0.0.5",
+  "version": "0.0.6",
+  "publisher": "ISC-Mario-Huereca-Rdz",
   "icon": "images/main_icon.png",
   "engines": {
     "vscode": "^1.125.0"
@@ -64,6 +65,11 @@
         "command": "weblogic.config",
         "key": "alt+w c",
         "mac": "cmd+alt+w c"
+      },
+      {
+        "command": "weblogic.showLog",
+        "key": "alt+w t",
+        "mac": "cmd+alt+w t"
       }
     ],
     "configuration": {
