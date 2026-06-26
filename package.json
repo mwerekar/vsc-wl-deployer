@@ -12,6 +12,10 @@
   "activationEvents": [
     "workspaceContains:pom.xml"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mwerekar/vsc-wl-deployer.git"
+  },
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
