@@ -3,6 +3,7 @@
   "displayName": "weblogic-deployer",
   "description": "Herramienta de despligue para weblogic 1x",
   "version": "0.0.4",
+  "icon": "images/main_icon.png",
   "engines": {
     "vscode": "^1.125.0"
   },
