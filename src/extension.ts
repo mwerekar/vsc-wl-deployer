@@ -9,6 +9,7 @@ const outputChannel = vscode.window.createOutputChannel("WebLogic Deployer");
 
 export function activate(context: vscode.ExtensionContext) {
 
+
     // 1. Comando: Configurar Servidores
     let configCmd = vscode.commands.registerCommand('weblogic.config', () => {
         // Abre la configuración global de VS Code filtrando por la extensión
@@ -54,18 +55,43 @@ export function activate(context: vscode.ExtensionContext) {
         await performUnDeploy(projectInfo);
     });
 
+
+
+// Botón Build & Deploy
+    const btnBuildDeploy = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    btnBuildDeploy.command = 'weblogic.buildAndDeploy';
+    btnBuildDeploy.text = '$(rocket)';
+    btnBuildDeploy.tooltip = 'Empaquetar y Desplegar en WebLogic';
+    btnBuildDeploy.show();
+
+    // Botón Deploy
+    const btnDeploy = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+    btnDeploy.command = 'weblogic.deploy';
+    btnDeploy.text = '$(cloud-upload)';
+    btnDeploy.tooltip = 'Desplegar en WebLogic (Sin recompilar)';
+    btnDeploy.show();
+
+    // Botón UnDeploy
+    const btnUndeploy = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
+    btnUndeploy.command = 'weblogic.undeploy';
+    btnUndeploy.text = '$(trash)';
+    btnUndeploy.tooltip = 'Remover de WebLogic';
+    btnUndeploy.show();
+
+    // Suscribir los botones al ciclo de vida de la extensión para limpieza automática
+    context.subscriptions.push(btnBuildDeploy, btnDeploy, btnUndeploy);
+
+
+
     context.subscriptions.push(configCmd, buildDeployCmd, deployCmd, undeployCmd);
 }
 
 // --- FUNCIONES AUXILIARES ---
 
 async function getMavenOptions() {
-    // 1. Obtener la configuración del espacio de trabajo para el prefijo 'maven'
+
     const configuration = vscode.workspace.getConfiguration('maven');
 
-    // 2. Obtener el valor específico de 'executable.options'
-    // El segundo parámetro (null) indica que queremos el valor global o de workspace, 
-    // no necesariamente atado a un recurso específico (como un archivo abierto).
     const mavenOptions = configuration.get<string>('executable.options');
 
     return mavenOptions;
@@ -118,7 +144,7 @@ async function getServer() {
     let targetServer = servers.find(s => s.isDefault);
 
     if (!targetServer) {
-        // Si no hay default, mostrar UI para elegir
+    
         const items = servers.map(s => ({ label: s.name, description: `${s.host}:${s.port}`, server: s }));
         const selected = await vscode.window.showQuickPick(items, { placeHolder: 'Selecciona un servidor WebLogic' });
         if (!selected) { return null; }
@@ -159,7 +185,7 @@ async function performDeploy(projectInfo: any) {
     outputChannel.appendLine('\n========================================');
     outputChannel.appendLine(`[DEBUG] Iniciando proceso de DEPLOY para: ${projectInfo.artifactId}`);
 
-    // 1. Validar Servidor
+
     const server = await getServer();
     if (!server) {
         outputChannel.appendLine('[DEBUG] Error: No se seleccionó ningún servidor o no hay configuración.');
@@ -168,7 +194,7 @@ async function performDeploy(projectInfo: any) {
 
     const deployTarget = server.target || 'AdminServer';
 
-    // Ruta de la API moderna para WebLogic 12.2.1.4+ / 14c / 15
+
     const apiPath = server.apiPath || '/management/weblogic/latest/edit/appDeployments';
     const url = `http://${server.host}:${server.port}${apiPath}`;
 
@@ -176,7 +202,7 @@ async function performDeploy(projectInfo: any) {
     outputChannel.appendLine(`[DEBUG] Target de WebLogic: ${deployTarget}`);
     outputChannel.appendLine(`[DEBUG] URL de la API REST: ${url}`);
 
-    // 2. Validar Artefacto
+
     if (!fs.existsSync(projectInfo.targetPath)) {
         const msg = `No se encontró el artefacto en: ${projectInfo.targetPath}. Ejecuta un Build primero.`;
         outputChannel.appendLine(`[DEBUG] Error: ${msg}`);
