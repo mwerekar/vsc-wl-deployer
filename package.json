@@ -3,7 +3,7 @@
   "displayName": "weblogic-deployer",
   "description": "Toolbox de despligue para weblogic 14+",
   "version": "0.0.6",
-  "publisher": "MWEREKAR",
+  "publisher": "mwerekar",
   "icon": "images/main_icon.png",
   "engines": {
     "vscode": "^1.125.0"

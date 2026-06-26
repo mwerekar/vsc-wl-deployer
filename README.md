@@ -9,6 +9,7 @@ Las operaciones de despliegue se realizan sobre el proyecto activo (leyendo el `
 - **Build & Deploy:** Empaqueta el aplicativo con Maven y realiza el despliegue en WebLogic, posteriormente abre el navegador con el contexto.
 - **Deploy:** Realiza únicamente el despliegue del artefacto (`war` o `ear`) del proyecto activo.
 - **UnDeploy:** Elimina el despliegue (undeploy) del aplicativo en el servidor WebLogic.
+- **Terminal log:** Abre una terminal del log de weblogic, soporta configuracion de path y logs desde contenedores.
 - **Configurar Servidores:** Interfaz para registrar múltiples servidores WebLogic globalmente en el IDE.
 
 ## Ejecucion 
