@@ -1,6 +1,6 @@
 # WebLogic Deployer para VS Code
 
-Extensión para automatizar el ciclo de vida de despliegue de aplicaciones Java J2EE hacia servidores WebLogic 15 (locales o remotos). Permite compilar proyectos con Maven y gestionar el despliegue de artefactos (`.war` o `.ear`) directamente desde Visual Studio Code.
+Extensión para automatizar el ciclo de vida de despliegue de aplicaciones Java J2EE hacia servidores WebLogic 14+ (locales o remotos). Permite compilar proyectos con Maven y gestionar el despliegue de artefactos (`.war` o `.ear`) directamente desde Visual Studio Code.
 
 ## Características y Uso
 

@@ -2,11 +2,11 @@
   "name": "weblogic-deployer",
   "displayName": "weblogic-deployer",
   "description": "Toolbox de despligue para weblogic 14+",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "mwerekar",
   "icon": "images/main_icon.png",
   "engines": {
-    "vscode": "^1.125.0"
+    "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
@@ -36,7 +36,8 @@
       {
         "command": "weblogic.config",
         "title": "WebLogic: Configurar Servidores"
-      },{
+      },
+      {
         "command": "weblogic.showLog",
         "title": "WebLogic: Ver Log en Vivo",
         "icon": "$(output)"
@@ -111,7 +112,8 @@
                 "type": "string",
                 "default": "/management/weblogic/latest/edit/appDeployments",
                 "description": "Ruta de la API REST para despliegue en WebLogic"
-              },"logPath": {
+              },
+              "logPath": {
                 "type": "string",
                 "description": "Ruta absoluta del archivo de log local, o ruta dentro del contenedor Docker (Ej: /u01/oracle/user_projects/domains/mydomain/servers/AdminServer/logs/AdminServer.log)"
               },
@@ -150,7 +152,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
-    "@types/vscode": "^1.125.0",
+    "@types/vscode": "^1.80.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.0.0",
     "esbuild": "^0.28.1",
@@ -164,6 +166,6 @@
     "serialize-javascript": "^7.0.6"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.9.3"
+    "fast-xml-parser": "^5.11.1"
   }
 }

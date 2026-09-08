@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
     // 1. Comando: Configurar Servidores
     let configCmd = vscode.commands.registerCommand('weblogic.config', () => {
         // Abre la configuración global de VS Code filtrando por la extensión
-        vscode.commands.executeCommand('workbench.action.openSettings', 'weblogic.servers');
+      vscode.commands.executeCommand('workbench.action.openSettingsJson');
     });
 
     // 2. Comando: Build & Deploy
