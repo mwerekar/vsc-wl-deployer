@@ -2,7 +2,7 @@
   "name": "weblogic-deployer",
   "displayName": "weblogic-deployer",
   "description": "Toolbox de despligue para weblogic 14+",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "publisher": "mwerekar",
   "icon": "images/main_icon.png",
   "engines": {

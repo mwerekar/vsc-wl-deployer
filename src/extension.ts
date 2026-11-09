@@ -156,6 +156,60 @@ async function getMavenOptions() {
     return mavenOptions;
 }
 
+type ArtifactNameSource = 'maven' | 'pom-finalName' | 'artifactId-version';
+
+function isUsableFinalName(value: unknown): value is string {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    const trimmed = value.trim();
+    return trimmed !== '' && trimmed !== 'null' && !trimmed.includes('${');
+}
+
+function resolveArtifactBaseNameFromPom(project: any): { baseName: string; source: 'pom-finalName' | 'artifactId-version' } {
+    const finalName = project?.build?.finalName;
+    if (isUsableFinalName(finalName)) {
+        return { baseName: finalName.trim(), source: 'pom-finalName' };
+    }
+
+    const artifactId = String(project.artifactId);
+    const rawVersion = project.version ?? project.parent?.version;
+    const version = rawVersion === undefined || rawVersion === null ? '' : String(rawVersion).trim();
+    const baseName = version ? `${artifactId}-${version}` : artifactId;
+    return { baseName, source: 'artifactId-version' };
+}
+
+function evaluateMavenFinalName(cwd: string, mvnOpts?: string): Promise<string | null> {
+    let command = 'mvn -q -DforceStdout help:evaluate -Dexpression=project.build.finalName';
+    if (mvnOpts) {
+        command += ` ${mvnOpts}`;
+    }
+
+    return new Promise((resolve) => {
+        cp.exec(command, { cwd }, (error, stdout) => {
+            if (error) {
+                outputChannel.appendLine(`[DEBUG] Maven no pudo resolver project.build.finalName (${error.message}). Se usa el pom.xml.`);
+                resolve(null);
+                return;
+            }
+
+            const line = stdout
+                .split(/\r?\n/)
+                .map(entry => entry.trim())
+                .filter(entry => entry.length > 0)
+                .pop();
+
+            if (!isUsableFinalName(line)) {
+                outputChannel.appendLine(`[DEBUG] Maven devolvió un finalName no usable: ${line ?? '(vacío)'}. Se usa el pom.xml.`);
+                resolve(null);
+                return;
+            }
+
+            resolve(line.trim());
+        });
+    });
+}
+
 async function getProjectInfo() {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -171,21 +225,34 @@ async function getProjectInfo() {
     }
 
     const xmlData = fs.readFileSync(pomPath, 'utf8');
-    const parser = new XMLParser();
+    const parser = new XMLParser({ parseTagValue: false });
     const result = parser.parse(xmlData);
 
     const artifactId = result.project.artifactId;
     const packaging = result.project.packaging || 'jar';
-    const version = result.project.version;
 
     if (packaging !== 'war' && packaging !== 'ear') {
         vscode.window.showErrorMessage('El packaging del proyecto debe ser war o ear.');
         return null;
     }
 
-    const artifactName = `${artifactId}.${packaging}`;
-    //  const artifactName = `${artifactId}-${version}.${packaging}`;
+    const mvnOpts = await getMavenOptions();
+    const mavenFinalName = await evaluateMavenFinalName(workspaceRoot, mvnOpts || undefined);
+
+    let baseName: string;
+    let source: ArtifactNameSource;
+    if (mavenFinalName) {
+        baseName = mavenFinalName;
+        source = 'maven';
+    } else {
+        const resolved = resolveArtifactBaseNameFromPom(result.project);
+        baseName = resolved.baseName;
+        source = resolved.source;
+    }
+
+    const artifactName = `${baseName}.${packaging}`;
     const targetPath = path.join(workspaceRoot, 'target', artifactName);
+    outputChannel.appendLine(`[DEBUG] Artefacto resuelto (${source}): ${targetPath}`);
 
     return { workspaceRoot, artifactId, targetPath, packaging };
 }
